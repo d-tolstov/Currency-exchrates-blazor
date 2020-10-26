@@ -1,0 +1,72 @@
+﻿@page "/geo"
+
+@using CurrExch.NB.Info.Data
+@inject GeoCurrencyExchRateService countryService
+
+<h3>Курсы валют с сайта НБ Грузии</h3>
+<h5>Формат ссылки для скачивания:</h5>
+<p>
+Для курсов текущего года :<br />
+https://www.nbg.gov.ge/uploads/exchangeratesunglisurad/official_daily_exchange_rateseng.xlsx <br>
+Для курсов с 2001 года по прошлый год включительно :<br>
+https://www.nbg.gov.ge/uploads/exchangeratesunglisurad/exratesyearseng.xlsx <br>
+</p>
+
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <button class="btn btn-outline-secondary" type="button" @onclick="RefreshExchRates">Submit</button>
+    </div>
+    <input type="text" class="form-control" @bind="dateStr" placeholder="Введите дату, например 19/08/1993" aria-label="" aria-describedby="basic-addon1">
+</div>
+
+<div class="container">
+    @if (countryService.AlreadyLaunched)
+    {
+    <pre>
+        Дата курса из источника : @countryService.GetRateDateStr()
+    </pre>
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>IsoCode</th>
+                <th>Nominal</th>
+                <th>Name</th>
+                <th>Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exchRate in countryService.ExchRates)
+            {
+            <tr>
+                <td>@exchRate.IsoCode</td>
+                <td align="right">@exchRate.Nominal</td>
+                <td>@exchRate.Name</td>
+                <td align="right">@exchRate.Rate</td>
+            </tr>
+                }
+        </tbody>
+    </table>
+    }
+</div>
+
+
+    @code {
+        private string dateStr;
+
+        protected override void OnInitialized()
+        {
+            dateStr = countryService.GetRequestDateStr();
+        }
+
+        private void RefreshExchRates()
+        {
+            DateTime exchRateDate;
+
+            if (!DateTime.TryParse(dateStr,out exchRateDate))
+            {
+                throw new Exception($"Не удалось преобразовать в дату строку '{dateStr}'");
+            }
+
+            countryService.CalcExchRateListByDate(exchRateDate);
+        }
+    }

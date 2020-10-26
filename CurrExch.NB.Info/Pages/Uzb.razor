@@ -1,0 +1,55 @@
+﻿@page "/uzb"
+
+@using CurrExch.NB.Info.Data
+@inject UzbCurrencyExchRateService countryService
+
+<h3>Курсы валют с сайта ЦБ Республики Узбекистан</h3>
+<h5>Формат ссылки для скачивания:</h5>
+<pre>
+https://nbu.uz/exchange-rates/json/
+</pre>
+
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <button class="btn btn-outline-secondary" type="button" @onclick="RefreshExchRates">Submit</button>
+    </div>
+</div>
+
+<div class="container">
+    @if (countryService.AlreadyLaunched)
+    {
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Code</th>
+                <th align="right">ЦБ</th>
+                <th align="right">Покупка</th>
+                <th align="right">Продажа</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exchRate in countryService.ExchRates)
+            {
+            <tr>
+                <td>@exchRate.Name</td>
+                <td>@exchRate.IsoCode</td>
+                <td align="right">@exchRate.Rate</td>
+                <td align="right">@exchRate.nbu_buy_price</td>
+                <td align="right">@exchRate.nbu_cell_price</td>
+                <td>@exchRate.date</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    }
+</div>
+
+
+    @code {
+        private void RefreshExchRates()
+        {
+            countryService.CalcExchRateListByDate();
+        }
+    }

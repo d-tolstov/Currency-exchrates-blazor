@@ -1,0 +1,72 @@
+﻿@page "/ukr"
+
+@using CurrExch.NB.Info.Data
+@inject UkrCurrencyExchRateService countryService
+
+<h3>Курсы валют с сайта НБ Украины</h3>
+<h5>Формат ссылки для скачивания:</h5>
+<pre>
+https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date=YYYYMMDD
+где :
+%YYYY% - год
+%MM% - месяц
+%DD% - день
+</pre>
+
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <button class="btn btn-outline-secondary" type="button" @onclick="RefreshExchRates">Submit</button>
+    </div>
+    <input type="text" class="form-control" @bind="dateStr" placeholder="Введите дату, например 19/08/1993" aria-label="" aria-describedby="basic-addon1">
+</div>
+
+<div class="container">
+    @if (countryService.AlreadyLaunched)
+    {
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>ISO code</th>
+                <th>Name</th>
+                <th align="right">Курс</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exchRate in countryService.ExchRates)
+            {
+            <tr>
+                <td>@exchRate.Id</td>
+                <td>@exchRate.IsoCode</td>
+                <td>@exchRate.Name</td>
+                <td align="right">@exchRate.Rate</td>
+                <td>@exchRate.Date</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    }
+</div>
+
+
+    @code {
+        private string dateStr;
+
+        protected override void OnInitialized()
+        {
+            dateStr = countryService.GetRequestDateStr();
+        }
+
+        private void RefreshExchRates()
+        {
+            DateTime exchRateDate;
+
+            if (!DateTime.TryParse(dateStr, out exchRateDate))
+            {
+                throw new Exception($"Не удалось преобразовать в дату строку '{dateStr}'");
+            }
+
+            countryService.CalcExchRateListByDate(exchRateDate);
+        }
+    }

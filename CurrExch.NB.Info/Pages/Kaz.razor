@@ -1,0 +1,77 @@
+﻿@page "/kaz"
+
+@using CurrExch.NB.Info.Data
+@inject KazCurrencyExchRateService countryService
+
+<h3>Курсы валют с сайта НБ Казахстана</h3>
+<h5>Формат ссылки для скачивания:</h5>
+<pre>
+https://nationalbank.kz/rss/get_rates.cfm?fdate=%DD%.%MM%.%YYYY%
+где :
+%DD% - день
+%MM% - месяц
+%YYYY% - год
+</pre>
+
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <button class="btn btn-outline-secondary" type="button" @onclick="RefreshExchRates">Submit</button>
+    </div>
+    <input type="text" class="form-control" @bind="dateStr" placeholder="Введите дату, например 19/08/1993" aria-label="" aria-describedby="basic-addon1">
+</div>
+
+<div class="container">
+    @if (countryService.AlreadyLaunched)
+    {
+    <pre>
+        Дата курса из источника : @countryService.GetRateDateStr()
+    </pre>
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Direction</th>
+                <th>IsoCode</th>
+                <th>Name</th>
+                <th>Nominal</th>
+                <th>Rate</th>
+                <th>Change</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exchRate in countryService.ExchRates)
+            {
+            <tr>
+                <td>@exchRate.Direction</td>
+                <td>@exchRate.IsoCode</td>
+                <td>@exchRate.Name</td>
+                <td align="right">@exchRate.Nominal</td>
+                <td align="right">@exchRate.Rate</td>
+                <td align="right">@exchRate.Change</td>
+            </tr>
+                }
+        </tbody>
+    </table>
+    }
+</div>
+
+
+    @code {
+        private string dateStr;
+
+        protected override void OnInitialized()
+        {
+            dateStr = countryService.GetRequestDateStr();
+        }
+
+        private void RefreshExchRates()
+        {
+            DateTime exchRateDate;
+
+            if (!DateTime.TryParse(dateStr,out exchRateDate))
+            {
+                throw new Exception($"Не удалось преобразовать в дату строку '{dateStr}'");
+            }
+
+            countryService.CalcExchRateListByDate(exchRateDate);
+        }
+    }

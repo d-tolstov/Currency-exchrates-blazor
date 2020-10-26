@@ -1,0 +1,49 @@
+﻿@page "/kgz"
+
+@using CurrExch.NB.Info.Data
+@inject KgzCurrencyExchRateService countryService
+
+<h3>Курсы валют с сайта НБ Кыргызской Республики</h3>
+<h5>Формат ссылки для скачивания:</h5>
+<pre>
+https://www.nbkr.kg/XML/daily.xml
+</pre>
+
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <button class="btn btn-outline-secondary" type="button" @onclick="RefreshExchRates">Submit</button>
+    </div>
+</div>
+
+<div class="container">
+    @if (countryService.AlreadyLaunched)
+    {
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>ISO код</th>
+                <th align="right">Номинал</th>
+                <th align="right">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exchRate in countryService.ExchRates)
+            {
+            <tr>
+                <td>@exchRate.IsoCode</td>
+                <td align="right">@exchRate.Nominal</td>
+                <td align="right">@exchRate.Rate</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    }
+</div>
+
+
+    @code {
+        private void RefreshExchRates()
+        {
+            countryService.CalcExchRateListByDate();
+        }
+    }
